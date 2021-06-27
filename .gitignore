@@ -1,0 +1,7 @@
+*.exe
+*.o
+godgame
+d_godgame
+*.out
+*ini
+*~
