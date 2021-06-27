@@ -1,33 +1,35 @@
-CC = clang++
+CC = g++
 CFLAGS = -O3 -fomit-frame-pointer -fexpensive-optimizations -ffast-math
 VFLAGS = --std=c++17
 LDFLAGS = -pthread -lstdc++fs -lsfml-graphics -lsfml-window -lsfml-system -lGL
 CDFLAGS = -g -pg
 ASAN = -fsanitize=address
+LDFLAGSWIN = -L SFML\lib -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lgdi32 -lwinmm -lfreetype -lole32 -loleaut32 -limm32 -lversion
 INCLUDE = -I imgui -I imgui-sfml
-TARGET = godgame
-DTARGET = debug_godgame
-WARNINGS = -Wall -Weffc++ -Wextra -Winit-self -Wzero-as-null-pointer-constant -Wnon-virtual-dtor -Winline -Wmissing-declarations -Wmissing-include-dirs -Wundef -Wredundant-decls -Wfloat-equal -Wmain -Wunreachable-code -Wshadow -Wcast-align -Wswitch-default -Wswitch-enum
-CPP = main.cpp view.cpp tile.cpp terrain.cpp imgui/*cpp imgui-sfml/imgui-SFML.cpp
-COMPILATION = $(CC) $(WARNINGS) $(VFLAGS) $(CFLAGS) $(INCLUDE) $(LDFLAGS)
+INCLUDEWIN = -I SFML\include $(INCLUDE)
+WARNINGS = -Wall -Weffc++ -Wextra -Winit-self -Wzero-as-null-pointer-constant -Wnon-virtual-dtor -Winline -Wmissing-declarations -Wmissing-include-dirs -Wundef -Wredundant-decls -Wfloat-equal -Wmain -Wunreachable-code -Wshadow -Wcast-align -W
+TARGET = godgame.exe
+CPP = *.cpp imgui\\*.cpp imgui-sfml\imgui-SFML.cpp
+COMPILATIONWIN = $(CC) $(VFLAGS) $(CFLAGS) -DSFML_STATIC $(INCLUDEWIN) $(LDFLAGSWIN)
+
 
 all: imgui main
-	$(CC) $(WARNINGS) $(VFLAGS) $(CFLAGS) $(INCLUDE) *.o $(LDFLAGS) -o $(TARGET)
+	$(CC) $(VFLAGS) $(CFLAGS) *.o -o $(TARGET) $(LDFLAGSWIN) $(INCLUDEWIN)
 
 main: terrain
-	$(COMPILATION) main.cpp -c
+	$(COMPILATIONWIN) main.cpp -c
 
 view:
-	$(COMPILATION) view.cpp -c
+	$(COMPILATIONWIN) view.cpp -c
 
 terrain: tile view
-	$(COMPILATION) terrain.cpp -c
+	$(COMPILATIONWIN) terrain.cpp -c
 
 tile:
-	$(COMPILATION) tile.cpp -c
+	$(COMPILATIONWIN) tile.cpp -c
 
 imgui:
-	$(COMPILATION) imgui/*cpp imgui-sfml/imgui-SFML.cpp -c
+	$(COMPILATIONWIN) imgui\\*cpp imgui-sfml\imgui-SFML.cpp -c
 
 debug:
 	$(CC) $(WARNINGS) $(VFLAGS) $(ASAN) $(CDFLAGS) $(INCLUDE) $(CPP) $(LDFLAGS) -o $(DTARGET)
