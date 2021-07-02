@@ -20,15 +20,20 @@ int main(){
   ImGuiIO& io=ImGui::GetIO();
   io.MouseDrawCursor=true;
   sf::Clock deltaClock;
-  sf::Texture texture;
-  sf::Sprite sprite;
-  std::vector<uint8_t> vec;
-  double evaluation, level1, level2, level3, level4, level5, base1, base2;  
+  sf::Texture texturegrass, texturedirt;
+  sf::Sprite spritegrass, spritedirt;
+  std::vector<uint8_t> vecgrass, vecdirt;
+  sf::Color dirt(130,84,15);
+
+  double evaluation1, evaluation2, level1, level2, level3, level4, level5, roughness;  
   OpenSimplexNoise osn(1);
   
-  sprite.setColor(sf::Color::Green);
   
-  texture.create(1000, 1000);
+  spritedirt.setColor(dirt);
+  
+  texturegrass.create(1000, 1000);
+  
+  texturedirt.create(1000,1000);
   
   for(double i=0; i < 1000; i++) {
   	for(double j=0; j < 1000*4; j++) {
@@ -43,42 +48,47 @@ int main(){
 	  	
 	  	level1 = osn.Evaluate(i/10, j/40);
 	
-	  	//evaluation = 0.22;
+		roughness = osn.Evaluate(i/2, j/8);
+
+	  	//Uncomment this for grass
+	  	evaluation1 = (level5/3 + level4/4 + level3/8 + level2/16 + level1/32)/12 + roughness/10;
 	  	
-	  	//evaluation = level1;
+	  	evaluation2 = 0.68 + (level5/12 + roughness/12)/3;
 	  	
-	  	//evaluation = level2;
+	  	evaluation1 += 0.864366;
 	  	
-	  	//evaluation = level3;
+	  	evaluation1 /= 1.728732;
 	  	
-	  	//evaluation = level4;
+	  	evaluation2 += 0.864366;
 	  	
-	  	//evaluation = level5;
+	  	evaluation2 /= 1.728732;
 	  	
-	  	evaluation = (level5/3 + level4/4 + level3/8 + level2/16 + level1/32)/4 + 0.45;
+	  	if(evaluation1 > 1.0) evaluation1 = 1.0;
 	  	
-	  	evaluation += 0.864366;
+	  	else if(evaluation1 < 0.0) evaluation1 = 0.0;
 	  	
-	  	evaluation /= 1.728732;
+	  	if(evaluation2 > 1.0) evaluation2 = 1.0;
 	  	
-	  	evaluation -=0.15;
+	  	else if(evaluation2 < 0.0) evaluation2 = 0.0;
 	  	
-	  	if(evaluation > 1.0) evaluation = 1.0;
+	  	evaluation1 *= 255;
 	  	
-	  	else if(evaluation < 0.0) evaluation = 0.0;
+	  	evaluation2 *= 255;
 	  	
-	  	evaluation *= 255;
-	  	
-		vec.push_back((uint8_t) evaluation);
+		vecgrass.push_back((uint8_t) evaluation1);
+		
+		vecdirt.push_back((uint8_t) evaluation2);
 	
 	}
   }
 
-  texture.update(vec.data());
+  texturegrass.update(vecgrass.data());
   
-  sprite.setTexture(texture);
-
-  sprite.scale(1.0, 1.0);
+  texturedirt.update(vecdirt.data());
+  
+  spritegrass.setTexture(texturegrass);
+  
+  spritedirt.setTexture(texturedirt);
 
   terrain myTerrain(9, 9);
 
@@ -92,12 +102,22 @@ int main(){
 	}
 	ImGui::SFML::Update(window, deltaClock.restart());
 
+	static int density;
+
 	window.clear(background);
 	ImGui::Begin("Debug menu");
 
-	//Draw stuff
+	ImGui::SliderInt("Grass Density", &density, 0, 255);
 
-	window.draw(sprite);
+	//Draw stuff
+	
+	sf::Color grass(0,255,0,(int)density);
+	
+	spritegrass.setColor(grass);
+	
+
+	window.draw(spritedirt);
+	window.draw(spritegrass);
 	view.update(window);
 
 	ImGui::End();
